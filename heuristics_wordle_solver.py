@@ -29,10 +29,10 @@ def get_feedback(guess, answer):
             feedback[i] = '🟩'
             used[i] = True
 
-    # Second pass: check for yellows
+    # Second pass: check for yellows (correct letter, wrong position)
     for i in range(5):
-        if feedback[i] == '⬛':
-            for j in range(5):
+        if feedback[i] == '⬛': # Initialize all feedback as black
+            for j in range(5):  # Track used letters in answer for yellows
                 if guess[i] == answer[j] and not used[j] and guess[j] != answer[j]:
                     feedback[i] = '🟨'
                     used[j] = True
@@ -45,23 +45,24 @@ def has_repeated_letters(word):
     return len(set(word)) < len(word)
 
 def main():
-    # Load Wordle solutions and guesses from file
+    # Load Wordle solution and guess word lists
     with open('past_answers.txt') as f:
         solutions = [line.strip() for line in f]
 
     with open('possible_guesses.txt') as f:
         guesses = [line.strip() for line in f]
 
-    # Compute frequency data for all guesses
+    # Generate positional frequency table from guess list
     pos_freq = letter_frequency(guesses)
 
-
+    # Allow user to choose between interactive single word or full simulation
     print("Choose a mode:")
     print("1. Guess a random word and show feedback after each guess")
     print("2. Run full simulation (average guesses over all solutions)")
     mode = input("Enter 1 or 2: ").strip()
 
     if mode == "1":
+        # Mode 1: Interactive single game with random target word
         import random
         word = random.choice(solutions)
         remaining_words = solutions.copy()
@@ -77,7 +78,8 @@ def main():
         if guess == word:
             print(f"Solved in {num_guesses} guess!")
             return
-
+        
+        # Filter out impossible words based on feedback
         remaining_words = [w for w in remaining_words if get_feedback(guess, w) == feedback]
 
         while True:
@@ -131,6 +133,8 @@ def main():
                 num_guesses += 1
                 if guess == word:
                     break
+
+                # Get feedback and filter again
                 feedback = get_feedback(guess, word)
                 remaining_words = [w for w in remaining_words if get_feedback(guess, w) == feedback]
 
@@ -138,6 +142,7 @@ def main():
             if num_guesses <= 6:
                 solved_in_six_or_less += 1
 
+        # Print results of full simulation
         average_guesses = total_guesses / len(solutions)
         success_rate = (solved_in_six_or_less / len(solutions)) * 100
         print(f"Average number of guesses: {average_guesses:.2f}")
