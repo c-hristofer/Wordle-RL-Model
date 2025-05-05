@@ -83,9 +83,11 @@ def main():
         remaining_words = [w for w in remaining_words if get_feedback(guess, w) == feedback]
 
         while True:
+            # Score remaining words based on heuristic frequency model
             word_scores = [(word, score_word(word, pos_freq)) for word in remaining_words]
             word_scores.sort(key=lambda x: x[1], reverse=True)
 
+            # Guesses have no repeated letters if possible
             filtered = [w for w, _ in word_scores if not has_repeated_letters(w)]
             if filtered:
                 guess = filtered[0]
@@ -101,15 +103,20 @@ def main():
                 print(f"Solved in {num_guesses} guesses!")
                 break
 
+            # Narrow down possible answers using all guess history
             remaining_words = [w for w in remaining_words if get_feedback(guess, w) == feedback]
 
     else:
+        # Mode 2: Full simulation over all possible solution words
         total_guesses = 0
         solved_in_six_or_less = 0
+
+        # Try solving each target word
         for word in solutions:
             remaining_words = solutions.copy()
             num_guesses = 0
 
+            # First guess is always "salet" according to MIT https://mitsloan.mit.edu/ideas-made-to-matter/how-algorithm-solves-wordle
             guess = "salet"
             num_guesses += 1
             if guess == word:
@@ -117,13 +124,21 @@ def main():
                 solved_in_six_or_less += 1
                 continue
 
+            # Narrow the word list based on feedback
             feedback = get_feedback(guess, word)
             remaining_words = [w for w in remaining_words if get_feedback(guess, w) == feedback]
 
+            # Continue making guesses until the word is found
             while True:
                 word_scores = [(word, score_word(word, pos_freq)) for word in remaining_words]
                 word_scores.sort(key=lambda x: x[1], reverse=True)
 
+                
+                # Avoids repeating letters in early guesses if possible
+                """
+                Adding this heuristic lowered the average number of guesses from 3.81 to 3.79
+                Adding this heuristic also decreased the percentage of words solved in 6 or fewer guesses from 99.27% to 99.09%
+                """
                 filtered = [w for w, _ in word_scores if not has_repeated_letters(w)]
                 if filtered:
                     guess = filtered[0]
