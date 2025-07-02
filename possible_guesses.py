@@ -1,4 +1,6 @@
+# Import required modules
 import requests
+import os
 # All possible wordle guesses
 url = "https://raw.githubusercontent.com/tabatkins/wordle-list/main/words" 
 response = requests.get(url)
@@ -18,7 +20,19 @@ for word in wordlist:
 sorted_letters = dict(sorted(letter_counts.items(), key = lambda item: item[1], reverse=True))
 print(f"Letter counts: {sorted_letters}")
 
-# Export sorted letters to a file
-with open("possible_guesses_data.txt", "w") as f:
+# Determine the path to the 'data' folder relative to the script's location
+script_dir = os.path.dirname(os.path.abspath(__file__))
+output_dir = os.path.join(script_dir, "data")
+os.makedirs(output_dir, exist_ok=True)
+output_path = os.path.join(output_dir, "possible_guesses_data.txt")
+
+# Export sorted letters to a file in the 'data' folder
+with open(output_path, "w") as f:
     for letter, count in sorted_letters.items():
         f.write(f"{letter}: {count}\n")
+
+# Save the word list to 'possible_guesses.txt' in the data folder
+guesses_path = os.path.join(output_dir, "possible_guesses.txt")
+with open(guesses_path, "w") as f:
+    for word in wordlist:
+        f.write(f"{word}\n")
